@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chromatic Shooter</title>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <link rel="stylesheet" type="text/css" href="font.css">
+    <style>
+        .body{
+            font-size:20px;
+            }
+        .font{
+            font-family: "DotGothic16";
+            }
+    </style>
+    </head>
+    <body>
+        <audio id="movement" preload="auto">
+        <source src="./Sounds/カーソル移動12.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <audio id="fire" preload="auto">
+        <source src="./Sounds/決定ボタンを押す2.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <audio id="pop" preload="auto">
+        <source src="./Sounds/決定ボタンを押す44.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <audio id="colorOfTheDay" preload="auto">
+        <source src="./Sounds/ColorOfTheDay.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <audio id="prediversity" preload="auto">
+        <source src="./Sounds/Prediversity.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <audio id="extinction" preload="auto">
+        <source src="./Sounds/Extinction.mp3" type="audio/mp3">
+        効果音非対応
+    </audio>
+        <script type="text/javascript">
+        function movement() {
+            if(document.getElementById('movement').currentTime>0){
+            document.getElementById('movement').pause();
+            document.getElementById('movement').currentTime = 0;
+                }
+            document.getElementById("movement").play();
+        }
+            function fire() {
+            if(document.getElementById('fire').currentTime>0){
+            document.getElementById('fire').pause();
+            document.getElementById('fire').currentTime = 0;
+                }
+            document.getElementById("fire").play();
+        }
+            function pop() {
+            if(document.getElementById('pop').currentTime>0){
+            document.getElementById('pop').pause();
+            document.getElementById('pop').currentTime = 0;
+                }
+            document.getElementById("pop").play();
+        }
+            function colorOfTheDay() {
+                if(document.getElementById('colorOfTheDay').currentTime>0){
+            document.getElementById('colorOfTheDay').pause();
+            document.getElementById('colorOfTheDay').currentTime = 0;
+                }
+            document.getElementById("colorOfTheDay").play();
+            }
+            function prediversity() {
+                if(document.getElementById('prediversity').currentTime>0){
+            document.getElementById('prediversity').pause();
+            document.getElementById('prediversity').currentTime = 0;
+                }
+            document.getElementById('colorOfTheDay').pause();
+            document.getElementById("prediversity").play();
+            }
+            function extinction() {
+                if(document.getElementById('extinction').currentTime>0){
+            document.getElementById('extinction').pause();
+            document.getElementById('extinction').currentTime = 0;
+                }
+            document.getElementById('prediversity').pause();
+            document.getElementById("extinction").play();
+            }
+        </script>
+        <canvas class="canvas" width="1495" height="688"></canvas>
+        <t id="res"></t>
+        <script type="text/javascript" src="./lib/mathematics.lib.js"></script>
+        <script type="text/javascript" src="./lib/hachchchctx.lib.js"></script>
+        <script type="text/javascript" src="main.js"></script>
+    </body>
+</html>
