@@ -11,6 +11,9 @@ var colorCharge=0;
 var ccRemind=0;
 var buttonInterval=0;
 var scoreBonusPercent=1.0;
+var intro=false;
+var introId=0;
+var introInterval=0;
 var combo=[0,0,20];
 function comboReset(){
     combo=[0,0];
@@ -25,13 +28,22 @@ const ctx=canvas.getContext("2d");
 const size=860/10;
 var interval=350;
 var buttons=[{
+    x:100,
+    y:50,
+    label:"ゲーム説明",
+    id:"introduction",
+    display:1,
+    over:0,
+    below:1,
+    isSelect:false
+},{
     x:border/2,
     y:canvas.height/2-200,
     label:"Primary 4色",
     id:"Normal",
     display:1,
     over:0,
-    below:1,
+    below:2,
     isSelect:true
 },{
     x:border/2,
@@ -39,8 +51,8 @@ var buttons=[{
     label:"Munsell 5色",
     id:"Hard",
     display:1,
-    over:0,
-    below:2,
+    over:1,
+    below:3,
     isSelect:false
 },{
     x:border/2,
@@ -48,8 +60,8 @@ var buttons=[{
     label:"Rainbow 7色",
     id:"Very Hard",
     display:1,
-    over:1,
-    below:2,
+    over:2,
+    below:3,
     isSelect:false
 }];
 var timer=0;
@@ -61,7 +73,7 @@ const bullets=[];
 const colors=["red","blue","green","orange"];
 var nextColor=randomColor();
 //var colorChange=[randomColor(),200,0];
-const player={x:(blockWidth*size/2)+size/2,y:canvas.height-size/2,fireDuration:20,hue:randomColor(),shotInterval:0,damagedInterval:0,effect:[]};
+var player={x:(blockWidth*size/2)+size/2,y:canvas.height-size/2,fireDuration:20,hue:randomColor(),shotInterval:0,damagedInterval:0,effect:[]};
 canvas.style.border = "3px solid";
 ctx.font = "100px DotGothic16";
 ctx.textAlign = "center";
@@ -79,6 +91,9 @@ tp[1]=0;
 tp[0]+=size;
 }
 function translate(){
+    if(introInterval>0){
+        introInterval--;
+    }
     let prod=1.00;
         prod+=Math.floor((350-interval)/10)/10;
         prod=prod*scoreBonusPercent;
@@ -105,7 +120,8 @@ function translate(){
     if(colorCharge>0){
         colorCharge--;
         interval=Math.round(ccRemind/2);
-        if(colorCharge<=0){
+        if(colorCharge<=0 || enemy.findIndex((e)=>e.y>=size*5.5)!=-1){
+            colorCharge=0;
             interval=ccRemind;
             ccRemind=0;
         }
@@ -140,9 +156,12 @@ function translate(){
             }
             if(hp<=0){
                 stop=true;
+                player.y=1000;
                 extinction();
                 addTitleText(border/2,canvas.height/2-50,`GAME OVER`,150,"#000000",true);
                 addTitleText(border/2,canvas.height/2+50,`スコア${score}`,50,"#000000",true);
+                addTitleText(border/2,canvas.height/2+260,`Tキーで結果をコピー`,30,"#000000",true);
+                addTitleText(border/2,canvas.height/2+300,`Rキーでリスタート`,30,"#000000",true);
             }
         }
         for(let k=0; k<Math.ceil(Math.random()*5+5); ++k){
@@ -191,6 +210,7 @@ function translate(){
                 if(el==0){
                     addTitleText(border/2,canvas.height/2-100,"全消し！",200,"#000000");
                     addTitleText(border/2,canvas.height/2+100,"ボーナス+10%",100,"#000000");
+                    player.effect=[];
                     score+1000;
                     scoreBonusPercent+=0.1;
                 }
@@ -346,13 +366,19 @@ function translate(){
             if(b.isSelect){
                 switch(b.id){
                 case "Normal":
+                        intro=false;
                         colorList=["赤","青","緑","橙"];
                         break;
                 case "Hard":
+                        intro=false;
                         colorList=["赤","青","緑","橙","紫"];
                         break;
                 case "Very Hard":
+                        intro=false;
                         colorList=["赤","青","緑","橙","紫","黄","藍"];
+                        break;
+                case "introduction":
+                        intro=true;
                         break;
                 }
                 predif=b.id;
@@ -360,6 +386,7 @@ function translate(){
         }
         }
         ctx.font = `30px DotGothic16`;
+        if(displayId==1 && !intro){
         ctx.fillText(`色素:${colorList.join()}`,border+300,470);
         if(predif=="Hard"){
             ctx.fillText(`スコアボーナスが30%増加`,border+300,520);
@@ -368,6 +395,7 @@ function translate(){
             ctx.fillText(`スコアボーナスが70%増加`,border+300,520);
             ctx.fillText(`黒玉の効果が変更`,border+300,570);
         }
+            }
     }
     ctx.fillStyle="#000000";
     /*UI*/
@@ -392,9 +420,17 @@ function translate(){
                 }
                 }
             }
+            if(b.id=="introduction"){
+        ctx.font = `30px DotGothic16`;
+            }else{
         ctx.font = `50px DotGothic16`;
+            }
         ctx.fillText(b.label,b.x,b.y);
-        ctx.strokeRect(b.x-150,b.y-75,300,150);
+            if(b.id=="introduction"){
+                ctx.strokeRect(b.x-80,b.y-37.5,160,75);
+            }else{
+                ctx.strokeRect(b.x-150,b.y-75,300,150);
+            }
         }
     }
     ctx.beginPath();
@@ -415,6 +451,7 @@ function translate(){
     ctx.stroke();
     ctx.closePath();
     ctx.fillText("クロマトシューター",border+300,130);
+    if(displayId==2){
         if(nextColor=="#000000"){
     ctx.fillText(`次の色:black`,border+120,200);
         }else{
@@ -422,10 +459,60 @@ function translate(){
         }
     ctx.fillText(`得点:${score}`,border+300,200);
     //ctx.fillText(`タイム:${time}`,border+200,300);
-    if(hp>0){
+        }
+    //説明
+    if(intro){
+        ctx.textAlign = "left";
+        switch(introId){
+                case 0:
+                ctx.fillText("矢印キーまたはWASDキーで移動",border+20,200);
+                ctx.fillText("上から流れてくる敵が一番下のタイルを通り",border+20,240);
+                ctx.fillText("過ぎると残機が減るよ。",border+20,280);
+                ctx.fillText("EnterまたはZ,Spaceで弾丸を発射！",border+20,320);
+                ctx.fillText("弾丸はプレイヤーの色と同じ色になり、",border+20,360);
+                ctx.fillText("同じ色の敵を倒すことができるぞ！",border+20,400);
+                ctx.fillText("敵を連続で倒すと連鎖する。",border+20,440);
+                ctx.fillText("連鎖を狙ってスコアを稼ごう！",border+20,480);
+                ctx.fillText("一定時間待つまたはHキーを押すと敵が出現",border+20,520);
+                ctx.fillText("敵が現れる間隔は段々早くなるぞ。",border+20,560);
+                break;
+                case 1:
+                ctx.fillText("稀に出現する黒玉は倒すと高得点！何色でも",border+20,200);
+                ctx.fillText("倒すことができるぞ。更に、黒色を倒すと",border+20,240);
+                ctx.fillText("不思議なことが起こるよ。",border+20,280);
+                ctx.fillText("",border+20,320);
+                ctx.fillText("黒玉の効果",border+20,360);
+                ctx.fillText("ブラックアウト:プレイヤーの色が黒色になり",border+20,400);
+                ctx.fillText("どんな色でも倒せるようになる。",border+20,440);
+                ctx.fillText("ぬりつぶし:現在の敵の色が一色になる。",border+20,480);
+                ctx.fillText("ラピッドファイア:45°,135°の向きに弾丸が発",border+20,520);
+                ctx.fillText("射されるようになり、発射速度が早くなる。",border+20,560);
+                break;
+                case 2:
+                ctx.fillText("カラーチャージ:敵の出現間隔が5秒の間2倍",border+20,200);
+                ctx.fillText("速になる(効果は重ならない)",border+20,240);
+                ctx.fillText("一番下に来た敵の上に重なると色は関係なく",border+20,280);
+                ctx.fillText("倒すことができるぞ。",border+20,320);
+                ctx.fillText("最後に、スコアボーナスはスコアが加点され",border+20,360);
+                ctx.fillText("る量の倍率",border+20,400);
+                ctx.fillText("全消しボーナスで10%増加したり、",border+20,440);
+                ctx.fillText("敵の出現5回ごとに0.1増加したりするぞ。",border+20,480);
+                ctx.fillText("黒玉のバフ効果は全消しで消えるので注意",border+20,520);
+                ctx.fillText("スコアボーナスを多く稼いでハイスコアを目",border+20,560);
+                ctx.fillText("指そう！",border+20,600);
+                break;
+        }
+        ctx.textAlign = "center";
+        ctx.fillText(`${introId+1}/3`,border+(canvas.width-border)/2,650);
+    }
+    //正多角形
+    if(hp>0 && displayId!=0 && !intro){
     ctx.beginPath();
     let range=100;
     let x=border+120;
+    if(displayId==1){
+        x=border+(canvas.width-border)/2;
+    }
     let y=canvas.height/2;
     let k=1;
     let rad=Math.PI*2/(Math.pow(1/2,hp)+2);
@@ -671,6 +758,7 @@ window.addEventListener("keydown",(e)=>{
             fire();
             for(const b of buttons){
                 if(b.isSelect){
+                    if(b.id!="introduction"){
                     difficulty=b.id;
                     if(difficulty=="Hard"){
                         colors.push("purple");
@@ -685,12 +773,60 @@ window.addEventListener("keydown",(e)=>{
                     time=0;
                     bgmTime=0;
                     displayId=2;
+                    }else{
+                        if(introInterval==0){
+                        introId++;
+                        introInterval=10;
+                        if(introId>2){
+                            introId=0;
+                        }
+                            }
+                    }
                 }
             }
             }
     }
     if(displayId==0){
         displayId=1;
+    }
+    if(e.code==="KeyT" && stop){
+        let resultText=`クロマトシューター：難易度${difficulty}スコア${score}タイム${time}秒`;
+        navigator.clipboard.writeText(resultText).then(()=>{
+        console.log("コピー成功");
+    },()=>{
+      console.log("コピー失敗");
+        alert("セーブ失敗");
+      });
+    }
+    //リスタート
+    if(e.code==="KeyR" && stop){
+        console.log("リスタート");
+        time=0;
+        score=0;
+        player.effect=[];
+        player.x=5.5*size;
+        player.y=7.5*size;
+        player.shotInterval=0;
+        player.damagedInterval=0;
+        nextColor=randomColor();
+        player.hue=randomColor();
+        stop=false;
+        scoreBonusPercent=1;
+        interval=350;
+        translate();
+        if(difficulty=="Normal"){
+        hp=3;
+        }
+        if(difficulty=="Hard"){
+        hp=2;
+        }
+        if(difficulty=="Very Hard"){
+        hp=1;
+        }
+        enemy=[];
+        titleTexts=[];
+        popTexts=[];
+        bullets=[];
     }
 });
 function getEffect(x,y){
@@ -702,16 +838,26 @@ function getEffect(x,y){
         }
         addTitleText(x,y,`ぬりつぶし`,15,"#000000");
     }else if(seed==1){
+        if(player.effect.findIndex((e)=>e.name=="まぜすぎ")!=-1){
+            let index=player.effect.findIndex((e)=>e.name=="まぜすぎ");
+            player.effect[index].interval+=300;
+        }else{
         player.effect.push({name:"まぜすぎ",interval:300});
+        }
         addTitleText(x,y,`ブラックアウト`,15,"#000000");
     }else if(seed==2){
+        if(player.effect.findIndex((e)=>e.name=="ラピッドファイア")!=-1){
+            let index=player.effect.findIndex((e)=>e.name=="ラピッドファイア");
+            player.effect[index].interval+=300;
+        }else{
         player.effect.push({name:"ラピッドファイア",interval:300});
+        }
         addTitleText(x,y,`ラピッドファイア`,15,"#000000");
     }else if(seed==3){
         if(ccRemind==0){
         ccRemind=interval;
         }
-        colorCharge=300;
+        colorCharge+=300;
         addTitleText(x,y,`カラーチャージ`,15,"#000000");
     }
 }
