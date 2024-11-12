@@ -755,10 +755,10 @@ window.addEventListener("keydown",(e)=>{
             player.shotInterval=80;
             }
             }else if(displayId==1){
-            fire();
             for(const b of buttons){
                 if(b.isSelect){
                     if(b.id!="introduction"){
+                    fire();
                     difficulty=b.id;
                     if(difficulty=="Hard"){
                         colors.push("purple");
@@ -775,6 +775,7 @@ window.addEventListener("keydown",(e)=>{
                     displayId=2;
                     }else{
                         if(introInterval==0){
+                            fire();
                         introId++;
                         introInterval=10;
                         if(introId>2){
